@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Explorer Agent</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- Base Setup --- */
+        :root {
+            --neon-blue: #00d2ff;
+            --neon-purple: #9d4edd;
+            --dark-bg: #050510;
+            --glass-bg: rgba(15, 15, 30, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-color: var(--dark-bg);
+            color: #ffffff;
+            font-family: 'Rajdhani', sans-serif;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- Pure CSS Parallax Stars --- */
+        #space {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+        }
+
+        .stars {
+            width: 2px;
+            height: 2px;
+            background: transparent;
+            box-shadow: 174px 213px #FFF, 342px 54px #FFF, 542px 123px #FFF, 754px 432px #FFF, 123px 765px #FFF, 654px 234px #FFF, 876px 543px #FFF, 432px 876px #FFF, 987px 123px #FFF, 234px 567px #FFF; /* Shortened for brevity, pure CSS stars */
+            animation: animStar 50s linear infinite;
+        }
+        .stars::after {
+            content: " ";
+            position: absolute;
+            top: 2000px;
+            width: 2px;
+            height: 2px;
+            background: transparent;
+            box-shadow: inherit;
+        }
+        @keyframes animStar {
+            from { transform: translateY(0px); }
+            to { transform: translateY(-2000px); }
+        }
+
+        /* --- UI Container (Glassmorphism) --- */
+        .glass-panel {
+            width: 90%;
+            max-width: 850px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 0 20px rgba(0, 210, 255, 0.05);
+            margin: 40px 0;
+        }
+
+        /* --- Typography --- */
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+            font-size: 2.8rem;
+            margin: 0 0 10px 0;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0px 0px 20px rgba(0, 210, 255, 0.3);
+        }
+
+        .tagline {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #a0aab2;
+            letter-spacing: 2px;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+        }
+
+        /* --- Input Area --- */
+        .search-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 18px 25px;
+            color: #fff;
+            font-size: 1.1rem;
+            font-family: 'Rajdhani', sans-serif;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.2);
+        }
+
+        button {
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            border: none;
+            border-radius: 12px;
+            padding: 0 35px;
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(157, 78, 221, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* --- Loading & Results --- */
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(0, 210, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--neon-blue);
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto 15px auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .status-text {
+            color: var(--neon-blue);
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 2px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        #result-area {
+            display: none;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #result-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            color: #fff;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 10px;
+        }
+
+        .media-box {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 25px;
+            background: #000;
+            display: flex;
+            justify-content: center;
+        }
+
+        .media-box img, .media-box iframe {
+            max-width: 100%;
+            max-height: 500px;
+            object-fit: cover;
+            border: none;
+        }
+
+        .ai-response {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 4px solid var(--neon-purple);
+            padding: 25px;
+            border-radius: 0 12px 12px 0;
+            font-size: 1.2rem;
+            line-height: 1.7;
+            color: #e2e8f0;
+        }
+
+        .ai-response strong {
+            color: var(--neon-blue);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="space">
+        <div class="stars"></div>
+    </div>
+
+    <main class="glass-panel">
+        <header>
+            <h1>Space Explorer Agent</h1>
+            <div class="tagline">AI-Powered Astronomical Telemetry</div>
+        </header>
+
+        <div class="search-container">
+            <input type="text" id="user-input" placeholder="Initiate query (e.g., 'Show me today's space picture')" onkeypress="handleEnter(event)">
+            <button id="transmit-btn" onclick="transmitQuery()">Transmit</button>
+        </div>
+
+        <div id="loader" class="loader">
+            <div class="spinner"></div>
+            <div class="status-text">ESTABLISHING UPLINK TO NASA...</div>
+        </div>
+
+        <div id="result-area">
+            <h2 id="result-title"></h2>
+            <div class="media-box" id="media-container"></div>
+            <div class="ai-response" id="explanation"></div>
+        </div>
+    </main>
+
+    <script>
+        // Allow pressing "Enter" to trigger the search
+        function handleEnter(event) {
+            if (event.key === 'Enter') {
+                transmitQuery();
+            }
+        }
+
+        async function transmitQuery() {
+            const inputField = document.getElementById('user-input');
+            const queryText = inputField.value.trim();
+            if (!queryText) return;
+
+            const loader = document.getElementById('loader');
+            const resultArea = document.getElementById('result-area');
+            const btn = document.getElementById('transmit-btn');
+            
+            // UI State: Loading
+            loader.style.display = 'block';
+            resultArea.style.display = 'none';
+            btn.disabled = true;
+            btn.innerText = 'Uplinking...';
+
+            try {
+                // Send data to app.py
+                const response = await fetch('/api/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: queryText })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Populate UI with response data
+                document.getElementById('result-title').innerText = data.title;
+                
+                // Bold formatting for AI response
+                const formattedText = data.explanation.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                document.getElementById('explanation').innerHTML = formattedText;
+                
+                const mediaContainer = document.getElementById('media-container');
+                if (data.media_type === 'video') {
+                    mediaContainer.innerHTML = `<iframe src="${data.image_url}" allowfullscreen></iframe>`;
+                } else {
+                    mediaContainer.innerHTML = `<img src="${data.image_url}" alt="${data.title}">`;
+                }
+
+                // UI State: Success
+                resultArea.style.display = 'block';
+            } catch (error) {
+                console.error('Telemetry Error:', error);
+                document.getElementById('result-title').innerText = "Signal Lost";
+                document.getElementById('explanation').innerHTML = "Failed to establish uplink with Mission Control. Please check your backend connection.";
+                document.getElementById('media-container').innerHTML = "";
+                resultArea.style.display = 'block';
+            } finally {
+                // UI State: Reset
+                loader.style.display = 'none';
+                btn.disabled = false;
+                btn.innerText = 'Transmit';
+            }
+        }
+    </script>
+</body>
+</html>
