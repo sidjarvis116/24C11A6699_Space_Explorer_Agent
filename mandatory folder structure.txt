@@ -1,0 +1,6 @@
+Project/
+├── app.py              <-- (The code above)
+├── .env                <-- (NASA_API_KEY and GEMINI_API_KEY go here)
+├── requirements.txt
+└── templates/          <-- (MUST BE PLURAL)
+    └── index.html      <-- (Your HTML file goes INSIDE here)
