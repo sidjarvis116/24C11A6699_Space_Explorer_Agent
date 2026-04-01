@@ -40,7 +40,7 @@ def explain_science(title, description):
     prompt = f"Explain the science of '{title}' for a student using plain English: {description}"
     try:
         response = client.models.generate_content(
-            model='gemini-2.0-flash', # Latest stable for 2026
+            model='gemini-3.1-flash-lite-preview', # Latest stable for 2026
             contents=prompt
         )
         return response.text
